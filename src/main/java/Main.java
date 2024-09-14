@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Main {
 
@@ -8,12 +9,16 @@ public class Main {
         // test case 1
         int queueSize = 5;
         int requests = 10;
+
+        ReentrantLock locker = new ReentrantLock();
+
         BlockingQueue<Integer> queue = new BlockingQueue<>(queueSize);
 
         List<Integer> es = new ArrayList<>();
         for (int i = 0; i < requests; i ++) {
             es.add(i*4);
         }
+
 
         Thread producer = new Thread(() -> {
             try {
@@ -30,7 +35,7 @@ public class Main {
             try {
                 for (int i = 0; i < requests; i++) {
                     queue.dequeue();
-                    System.out.println("Consumed");
+                    System.out.println("Consumed " + i + "th request");
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

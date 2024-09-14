@@ -10,26 +10,32 @@ public class BlockingQueue<T> {
         this.max = size;
     }
 
-    public synchronized void enqueue(T item) throws InterruptedException {
-        if (queue.size() == max) {
-            wait();
+    public void enqueue(T item) throws InterruptedException {
+        synchronized (queue) {
+            if (queue.size() == max) {
+                queue.wait();
+            }
+            queue.add(item);
+            queue.notifyAll();
         }
-        queue.add(item);
-        notifyAll();
     }
 
 
-    public synchronized void dequeue() throws InterruptedException {
-        if (queue.size() != max) {
-            wait();
+    public void dequeue() throws InterruptedException {
+        synchronized (queue) {
+            if (queue.size() != max) {
+                queue.wait();
+            }
+            T item = queue.poll();
+            queue.add(item);
+            queue.notifyAll();
         }
-        T item = queue.poll();
-        queue.add(item);
-        notifyAll();
     }
 
-    public synchronized int size() {
-        return queue.size();
+    public int size() {
+        synchronized (queue) {
+            return queue.size();
+        }
     }
 
 }
