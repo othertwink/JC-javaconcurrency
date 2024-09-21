@@ -7,12 +7,12 @@ public class TestComplexTaskExecutor {
             System.out.println(Thread.currentThread().getName() + " started the test.");
 
             // Выполнение задач
-            taskExecutor.executeTasks(10); // почему множество потоков возвращают 0?
+            taskExecutor.executeTasks(10);
 
             System.out.println(Thread.currentThread().getName() + " completed the test.");
         };
 
-        Thread thread1 = new Thread(testRunnable, "TestThread-1");
+        Thread thread1 = new Thread(testRunnable, "TestThread-1"); // почему при двух потоках задачи не влезают в пул executor'a
         Thread thread2 = new Thread(testRunnable, "TestThread-2");
 
         thread1.start();
