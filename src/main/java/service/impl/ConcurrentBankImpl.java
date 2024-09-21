@@ -2,49 +2,65 @@ package service.impl;
 import entity.BankAccount;
 import service.ConcurrentBank;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 public class ConcurrentBankImpl implements ConcurrentBank {
 
     private Map<UUID, BankAccount> accounts = new HashMap<>();
+    private Object firstLock;
+    private Object secondLock;
 
     @Override
-    public Boolean transfer(BankAccount from, BankAccount to, int amount) {
+    public Boolean transfer(BankAccount from, BankAccount to, BigDecimal amount) {
 
-        if (from == null || to == null || amount <= 0 || from.getBalance() < amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0 || from.getBalance().compareTo(amount) < 0) {
             return false;
         }
 
-        from.withdraw(amount);
-        to.deposite(amount);
+        firstLock=from;
+        secondLock=to;
+        if (from.getUUID().compareTo(to.getUUID())>0) {
+            firstLock=to;
+            secondLock=from;
+        }
 
-        updateAccount(from);
-        updateAccount(to);
+        synchronized (firstLock) {
+            synchronized (secondLock) {
+                from.withdraw(amount);
+                to.deposite(amount);
+
+                updateAccount(from);
+                updateAccount(to);
+            }
+        }
         return true;
     }
 
     @Override
-    public BankAccount createAccount(int balance) {
-        UUID r = UUID.randomUUID();
-        BankAccount a = new BankAccount(r, balance);
+    public BankAccount createAccount(BigDecimal balance) {
+        UUID u = UUID.randomUUID();
+        BankAccount a = new BankAccount(u, balance);
         System.out.println(a.getUUID());
         synchronized (accounts) {
-            accounts.put(r, a);
+            accounts.put(u, a);
             return a;
         }
 
     }
 
     @Override
-    public int getTotalBalance() {
-        int c = 0;
-        Integer tb = 0;
-        for (Map.Entry<UUID, BankAccount> entry : accounts.entrySet()) {
-            c++;
-            BankAccount a = entry.getValue();
-            tb+=a.getBalance();
+    public BigDecimal getTotalBalance() {
+        synchronized (accounts) { // потоки, пытающиеся изменить accounts уйдут в wait на время выполнения
+            int c = 0;
+            BigDecimal tb = BigDecimal.ZERO;
+            for (Map.Entry<UUID, BankAccount> entry : accounts.entrySet()) {
+                c++;
+                BankAccount a = entry.getValue();
+                tb = tb.add(a.getBalance());
+            }
+            return tb;
         }
-        return tb;
     }
 
     private BankAccount updateAccount(BankAccount account) {

@@ -1,34 +1,35 @@
 package entity;
-
 import java.math.BigDecimal;
 import java.util.UUID;
 
 public class BankAccount {
 
     private UUID uuid;
-    private Integer b;
+    private BigDecimal b;
 
-    public BankAccount(UUID uuid, int balance) {
+    public BankAccount(UUID uuid, BigDecimal balance) {
         this.uuid = uuid;
         this.b = balance;
     }
 
-    public Integer withdraw(int amount){
+    public BigDecimal withdraw(BigDecimal amount){
         synchronized (b) {
-        if (b-amount<0) throw new IllegalArgumentException();
-        System.out.println("w " + " " + amount + " " + this.uuid);
-            return b-=amount;
+        if (b.subtract(amount).compareTo(BigDecimal.ZERO)<0) throw new IllegalArgumentException();
+            b=b.subtract(amount);
+            System.out.println("w " + " " + b + " " + this.uuid);
+            return b;
         }
     }
 
-    public Integer deposite(Integer amount) {
+    public BigDecimal deposite(BigDecimal amount) {
         synchronized (b) {
-            System.out.println("d " + " " + amount + " " + this.uuid);
-            return b+=amount;
+            b=b.add(amount);
+            System.out.println("d " + " " + b + " " + this.uuid);
+            return b;
         }
     }
 
-    public Integer getBalance() {
+    public BigDecimal getBalance() {
         synchronized (b) {
             return this.b;
         }
