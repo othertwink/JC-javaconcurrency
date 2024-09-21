@@ -18,9 +18,11 @@ public class ConcurrentBankImpl implements ConcurrentBank {
             return false;
         }
 
-        firstLock=from;
-        secondLock=to;
-        if (from.getUUID().compareTo(to.getUUID())>0) {
+
+        if (from.getUUID().compareTo(to.getUUID())<0) {
+            firstLock = from;
+            secondLock = to;
+        } else {
             firstLock=to;
             secondLock=from;
         }
